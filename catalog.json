@@ -1,0 +1,79 @@
+[
+  {
+    "id": 1,
+    "name": "Men's watch",
+    "price": 1700,
+    "old_price": 18000,
+    "lot_tag": "Amazon USA Lot",
+    "category": "Beauty & Care",
+    "in_stock": true,
+    "is_sample": false,
+    "image_file": "assets/product-1.jpg"
+  },
+  {
+    "id": 2,
+    "name": "Earrings pair",
+    "price": 550,
+    "old_price": 1800,
+    "lot_tag": "Amazon USA Lot",
+    "category": "Beauty & Care",
+    "in_stock": true,
+    "is_sample": false,
+    "image_file": "assets/product-2.jpg"
+  },
+  {
+    "id": 5,
+    "name": "LED Strip Lights 5m",
+    "price": 450,
+    "old_price": 2999,
+    "lot_tag": "Amazon USA Lot",
+    "category": "Beauty & Care",
+    "in_stock": false,
+    "is_sample": false,
+    "image_file": "assets/product-5.jpg"
+  },
+  {
+    "id": 4,
+    "name": "Earrings pair",
+    "price": 600,
+    "old_price": 1500,
+    "lot_tag": "Amazon USA Lot",
+    "category": "Beauty & Care",
+    "in_stock": true,
+    "is_sample": false,
+    "image_file": "assets/product-4.jpg"
+  },
+  {
+    "id": 10,
+    "name": "Earrings",
+    "price": 400,
+    "old_price": 1600,
+    "lot_tag": "Hong Kong Lot",
+    "category": "Beauty & Care",
+    "in_stock": true,
+    "is_sample": false,
+    "image_file": "assets/product-10.jpg"
+  },
+  {
+    "id": 11,
+    "name": "Kid's Toy Gun",
+    "price": 5600,
+    "old_price": 16350,
+    "lot_tag": "Hong Kong Lot",
+    "category": "Electronics",
+    "in_stock": true,
+    "is_sample": false,
+    "image_file": "assets/product-11.jpg"
+  },
+  {
+    "id": 12,
+    "name": "EroreX BT E20 Wireless Neckband Earphones Bluetooth 5.3 ENC Earbuds",
+    "price": 1600,
+    "old_price": 2800,
+    "lot_tag": "Amazon USA Lot",
+    "category": "Electronics",
+    "in_stock": true,
+    "is_sample": false,
+    "image_file": "assets/product-12.jpg"
+  }
+]

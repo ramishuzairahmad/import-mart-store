@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Import Mart — Admin</title>
+<style>
+  :root{--bg:#07162b;--surface:#0d2140;--surface2:#112a4d;--text:#f8fbff;--muted:#b8c5d8;--gold:#e8b93c;--gold2:#d4a017;--green:#24c265;--red:#e05252;--line:rgba(232,185,60,.19)}
+  *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1.5}
+  .wrap{width:min(960px,calc(100% - 32px));margin:auto;padding:28px 0 60px}
+  h1{font-size:26px;margin:0 0 4px}h1 span{color:var(--gold)}
+  .sub{color:var(--muted);margin:0 0 24px;font-size:14px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px}
+  .card h2{font-size:17px;margin:0 0 12px}
+  label{display:block;font-size:13px;font-weight:700;color:var(--muted);margin:12px 0 5px}
+  input,select,textarea{width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--line);background:var(--surface2);color:var(--text);font:inherit}
+  input[type=checkbox]{width:auto}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .btn{min-height:46px;padding:0 20px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:800;border:1px solid transparent;cursor:pointer;font:inherit}
+  .btn-gold{background:linear-gradient(135deg,var(--gold),#ffd86e,var(--gold2));color:#1c1506}
+  .btn-green{background:#1cab57;color:#fff}
+  .btn-ghost{border-color:var(--gold);color:var(--gold);background:transparent}
+  .btn-red{background:transparent;border-color:var(--red);color:var(--red);min-height:38px;padding:0 14px;font-size:13px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .hint{font-size:13px;color:var(--muted);margin:8px 0 0}
+  .status{padding:12px 14px;border-radius:10px;font-weight:700;display:none;margin-bottom:20px}
+  .status.show{display:block}
+  .status.ok{background:rgba(36,194,101,.15);border:1px solid rgba(36,194,101,.4)}
+  .status.err{background:rgba(224,82,82,.15);border:1px solid rgba(224,82,82,.45)}
+  .status.busy{background:rgba(232,185,60,.12);border:1px solid rgba(232,185,60,.4)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+  th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+  td img{width:56px;height:56px;object-fit:cover;border-radius:8px;display:block}
+  .out{color:var(--red);font-weight:700}
+  .in{color:var(--green);font-weight:700}
+  .actions{display:flex;gap:8px}
+  .small{font-size:13px;color:var(--muted)}
+  .hidden{display:none}
+  @media(max-width:640px){.row{grid-template-columns:1fr}table{font-size:13px}.hide-m{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>IMPORT <span>MART</span> — Admin</h1>
+  <p class="sub">Products add / edit / delete karein — Publish dabate hi store 1 minute mein update ho jayega.</p>
+  <div class="status" id="status"></div>
+
+  <div class="card">
+    <h2>1. GitHub Connection</h2>
+    <div class="row">
+      <div><label>Repo owner (GitHub username)</label><input id="ghOwner" value="ramishuzairahmad" /></div>
+      <div><label>Repo name</label><input id="ghRepo" value="import-mart-store" /></div>
+    </div>
+    <div class="row">
+      <div><label>Branch</label><input id="ghBranch" value="main" /></div>
+      <div><label>Personal Access Token</label><input id="ghToken" type="password" placeholder="github_pat_... ya ghp_..." autocomplete="off" /></div>
+    </div>
+    <p class="hint">Token sirf isi browser mein save hota hai (localStorage) — kahin aur nahi bheja jata, sirf GitHub ko jata hai. Token banane ke liye: GitHub → Settings → Developer settings → Personal access tokens → Fine-grained → repo <b>import-mart-store</b> par <b>Contents: Read and write</b>. Token na ho to neeche "Download catalog.json" se file download karke bhej dein.</p>
+    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-gold" id="saveConn" type="button">Save Connection</button>
+      <button class="btn btn-ghost" id="downloadBtn" type="button">Download catalog.json</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. Products (<span id="count">0</span>)</h2>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr><th>Photo</th><th>Name</th><th>Price</th><th class="hide-m">Category</th><th>Stock</th><th></th></tr></thead>
+      <tbody id="plist"></tbody>
+    </table>
+    </div>
+    <p class="hint" id="emptyNote">Abhi koi product nahi — neeche se naya product add karein.</p>
+  </div>
+
+  <div class="card">
+    <h2 id="formTitle">3. Naya Product Add Karein</h2>
+    <input type="hidden" id="editId" value="" />
+    <label>Product name *</label>
+    <input id="fName" placeholder="masalan: Men's Wallet" />
+    <div class="row">
+      <div><label>Price (Rs) *</label><input id="fPrice" type="number" min="0" placeholder="2200" /></div>
+      <div><label>Old price (Rs) — khaali chhodein agar na ho</label><input id="fOld" type="number" min="0" placeholder="3500" /></div>
+    </div>
+    <div class="row">
+      <div><label>Category</label>
+        <select id="fCat"><option>Electronics</option><option>Beauty &amp; Care</option><option>Home &amp; Kitchen</option><option>Toys &amp; Kids</option></select>
+      </div>
+      <div><label>Lot tag</label>
+        <select id="fLot"><option>Amazon USA Lot</option><option>Hong Kong Lot</option><option>China Lot</option></select>
+      </div>
+    </div>
+    <label>Photo *</label>
+    <input id="fPhoto" type="file" accept="image/*" />
+    <p class="hint" id="photoHint">Photo chunein — khud hi chhoti (1200px) karke upload hogi. Edit karte waqt photo na badalni ho to khaali chhodein, purani photo rehti hai.</p>
+    <label><input id="fStock" type="checkbox" checked /> In stock hai</label>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-green" id="saveProduct" type="button">Product Save Karein</button>
+      <button class="btn btn-ghost hidden" id="cancelEdit" type="button">Cancel</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>4. Publish — Store Par Lagayein</h2>
+    <p class="hint" style="margin-top:0">Publish dabate hi catalog.json (aur nayi photos) GitHub repo mein save hongi aur Cloudflare khud store ko dobara deploy kar dega — taqreeban 1 minute mein live.</p>
+    <button class="btn btn-gold" id="publishBtn" type="button">Publish to Store</button>
+    <p class="hint">Publish ke baad <a href="index.html" style="color:var(--gold)">store kholein</a> aur refresh karein.</p>
+  </div>
+  <p class="small"><a href="index.html" style="color:var(--gold)">← Store par wapas</a></p>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var statusEl = $('status');
+  var catalog = [];
+  var pendingImages = {}; // id -> {base64, ext}
+  var nextId = 1;
+
+  function setStatus(msg, kind) {
+    statusEl.textContent = msg;
+    statusEl.className = 'status show ' + (kind || '');
+  }
+  function money(v) { return 'Rs. ' + Number(v || 0).toLocaleString('en-PK'); }
+  function esc(t) {
+    return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function conn() {
+    return {
+      owner: $('ghOwner').value.trim(),
+      repo: $('ghRepo').value.trim(),
+      branch: $('ghBranch').value.trim() || 'main',
+      token: $('ghToken').value.trim()
+    };
+  }
+  function ghHeaders(c) {
+    return { 'Accept': 'application/vnd.github+json', 'Authorization': 'Bearer ' + c.token, 'Content-Type': 'application/json' };
+  }
+  function b64encode(str) {
+    return btoa(unescape(encodeURIComponent(str)));
+  }
+
+  function renderList() {
+    $('count').textContent = catalog.length;
+    $('emptyNote').style.display = catalog.length ? 'none' : 'block';
+    $('plist').innerHTML = catalog.map(function (p) {
+      return '<tr><td><img src="' + esc(p.image_file || '') + '" alt="" onerror="this.style.visibility=\'hidden\'"></td>' +
+        '<td><b>' + esc(p.name) + '</b><br><span class="small">' + esc(p.lot_tag || '') + '</span></td>' +
+        '<td>' + money(p.price) + (p.old_price ? '<br><span class="small"><s>' + money(p.old_price) + '</s></span>' : '') + '</td>' +
+        '<td class="hide-m">' + esc(p.category || '') + '</td>' +
+        '<td class="' + (p.in_stock ? 'in' : 'out') + '">' + (p.in_stock ? 'In stock' : 'Out') + '</td>' +
+        '<td><div class="actions"><button class="btn btn-ghost" style="min-height:38px;padding:0 12px;font-size:13px" onclick="editProduct(' + p.id + ')">Edit</button>' +
+        '<button class="btn btn-red" onclick="deleteProduct(' + p.id + ')">Delete</button></div></td></tr>';
+    }).join('');
+  }
+
+  window.editProduct = function (id) {
+    var p = null;
+    catalog.forEach(function (x) { if (x.id === id) p = x; });
+    if (!p) return;
+    $('formTitle').textContent = 'Product Edit Karein — ' + p.name;
+    $('editId').value = p.id;
+    $('fName').value = p.name;
+    $('fPrice').value = p.price;
+    $('fOld').value = p.old_price || '';
+    $('fCat').value = p.category || 'Electronics';
+    $('fLot').value = p.lot_tag || 'Amazon USA Lot';
+    $('fStock').checked = !!p.in_stock;
+    $('fPhoto').value = '';
+    $('cancelEdit').classList.remove('hidden');
+    window.scrollTo({ top: document.querySelectorAll('.card')[2].offsetTop - 10, behavior: 'smooth' });
+  };
+  window.deleteProduct = function (id) {
+    var p = null;
+    catalog.forEach(function (x) { if (x.id === id) p = x; });
+    if (!p) return;
+    if (!confirm('"' + p.name + '" delete karna hai?')) return;
+    catalog = catalog.filter(function (x) { return x.id !== id; });
+    delete pendingImages[id];
+    renderList();
+    setStatus('"' + p.name + '" delete ho gaya — Publish dabayein taake store par bhi hat jaye.', 'ok');
+  };
+  $('cancelEdit').addEventListener('click', function () {
+    $('formTitle').textContent = '3. Naya Product Add Karein';
+    $('editId').value = '';
+    $('fName').value = ''; $('fPrice').value = ''; $('fOld').value = '';
+    $('fPhoto').value = '';
+    $('cancelEdit').classList.add('hidden');
+  });
+
+  $('fPhoto').addEventListener('change', function () {
+    var file = $('fPhoto').files[0];
+    if (!file) return;
+    if (!file.type.match(/^image\//)) { setStatus('Sirf image file chunein (JPG/PNG).', 'err'); $('fPhoto').value = ''; return; }
+    var reader = new FileReader();
+    reader.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var maxW = 1200;
+        var w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        var dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        var id = $('editId').value ? Number($('editId').value) : nextId;
+        pendingImages[id] = { base64: dataUrl.split(',')[1], name: 'assets/product-' + id + '.jpg' };
+        $('photoHint').textContent = 'Photo tayyar hai (' + file.name + ' → ' + w + 'x' + h + ' JPG). Save dabayein.';
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  $('saveProduct').addEventListener('click', function () {
+    var name = $('fName').value.trim();
+    var price = Number($('fPrice').value);
+    if (!name) { setStatus('Product ka naam likhein.', 'err'); return; }
+    if (!price || price <= 0) { setStatus('Sahi price likhein.', 'err'); return; }
+    var editId = $('editId').value ? Number($('editId').value) : null;
+    if (editId) {
+      catalog.forEach(function (p) {
+        if (p.id !== editId) return;
+        p.name = name; p.price = price;
+        p.old_price = $('fOld').value ? Number($('fOld').value) : null;
+        p.category = $('fCat').value; p.lot_tag = $('fLot').value;
+        p.in_stock = $('fStock').checked;
+        if (pendingImages[editId]) p.image_file = pendingImages[editId].name;
+      });
+      setStatus('"' + name + '" update ho gaya — Publish dabayein.', 'ok');
+    } else {
+      var id = nextId;
+      if (!pendingImages[id]) { setStatus('Photo chunein — product ke baghair photo store par nahi dikhega.', 'err'); return; }
+      catalog.push({
+        id: id, name: name, price: price,
+        old_price: $('fOld').value ? Number($('fOld').value) : null,
+        lot_tag: $('fLot').value, category: $('fCat').value,
+        in_stock: $('fStock').checked, is_sample: false,
+        image_file: pendingImages[id].name
+      });
+      nextId = Math.max.apply(null, catalog.map(function (p) { return p.id; })) + 1;
+      setStatus('"' + name + '" add ho gaya — Publish dabayein.', 'ok');
+    }
+    $('cancelEdit').click();
+    renderList();
+  });
+
+  $('saveConn').addEventListener('click', function () {
+    var c = conn();
+    try {
+      localStorage.setItem('im_admin_conn', JSON.stringify({ owner: c.owner, repo: c.repo, branch: c.branch, token: c.token }));
+      setStatus('Connection save ho gayi (sirf isi browser mein).', 'ok');
+    } catch (e) { setStatus('Save nahi ho saki: ' + e.message, 'err'); }
+  });
+
+  $('downloadBtn').addEventListener('click', function () {
+    var blob = new Blob([JSON.stringify(catalog, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'catalog.json';
+    a.click();
+    setStatus('catalog.json download ho gayi.', 'ok');
+  });
+
+  $('publishBtn').addEventListener('click', function () {
+    var c = conn();
+    if (!c.token) { setStatus('Pehle Personal Access Token daalein (section 1) — ya Download se file bhej dein.', 'err'); return; }
+    if (!c.owner || !c.repo) { setStatus('Repo owner aur repo name likhein.', 'err'); return; }
+    setStatus('Publish ho raha hai...', 'busy');
+    $('publishBtn').disabled = true;
+    var base = 'https://api.github.com/repos/' + encodeURIComponent(c.owner) + '/' + encodeURIComponent(c.repo) + '/contents/';
+    // 1) current catalog sha
+    fetch(base + 'catalog.json?ref=' + encodeURIComponent(c.branch), { headers: ghHeaders(c) })
+      .then(function (res) { if (res.status === 404) return { sha: null }; if (!res.ok) throw new Error('GitHub error ' + res.status); return res.json(); })
+      .then(function (meta) {
+        var body = { message: 'Update catalog via Import Mart Admin', content: b64encode(JSON.stringify(catalog, null, 2)), branch: c.branch };
+        if (meta && meta.sha) body.sha = meta.sha;
+        return fetch(base + 'catalog.json', { method: 'PUT', headers: ghHeaders(c), body: JSON.stringify(body) });
+      })
+      .then(function (res) { if (!res.ok) throw new Error('Catalog publish fail — GitHub error ' + res.status); return res.json(); })
+      .then(function () {
+        // 2) upload any new images
+        var ids = Object.keys(pendingImages);
+        var chain = Promise.resolve();
+        ids.forEach(function (id) {
+          chain = chain.then(function () {
+            var img = pendingImages[id];
+            return fetch(base + img.name + '?ref=' + encodeURIComponent(c.branch), { headers: ghHeaders(c) })
+              .then(function (res) { if (res.status === 404) return { sha: null }; if (!res.ok) throw new Error('Image check fail ' + res.status); return res.json(); })
+              .then(function (meta) {
+                var body = { message: 'Upload product photo ' + img.name, content: img.base64, branch: c.branch };
+                if (meta && meta.sha) body.sha = meta.sha;
+                return fetch(base + img.name, { method: 'PUT', headers: ghHeaders(c), body: JSON.stringify(body) });
+              })
+              .then(function (res) { if (!res.ok) throw new Error('Photo upload fail — GitHub error ' + res.status); return res.json(); });
+          });
+        });
+        return chain;
+      })
+      .then(function () {
+        pendingImages = {};
+        setStatus('Publish ho gaya! Store taqreeban 1 minute mein update ho jayega.', 'ok');
+        $('publishBtn').disabled = false;
+      })
+      .catch(function (e) {
+        setStatus('Publish nahi ho saka: ' + e.message + ' — token ki Contents permission aur repo naam check karein.', 'err');
+        $('publishBtn').disabled = false;
+      });
+  });
+
+  // Load saved connection + catalog
+  try {
+    var saved = JSON.parse(localStorage.getItem('im_admin_conn') || 'null');
+    if (saved) {
+      $('ghOwner').value = saved.owner || $('ghOwner').value;
+      $('ghRepo').value = saved.repo || $('ghRepo').value;
+      $('ghBranch').value = saved.branch || 'main';
+      $('ghToken').value = saved.token || '';
+    }
+  } catch (e) {}
+  fetch('catalog.json', { cache: 'no-store' })
+    .then(function (res) { if (!res.ok) throw new Error('load fail'); return res.json(); })
+    .then(function (data) {
+      catalog = data || [];
+      nextId = catalog.length ? Math.max.apply(null, catalog.map(function (p) { return p.id; })) + 1 : 1;
+      renderList();
+    })
+    .catch(function () { renderList(); setStatus('catalog.json load nahi hui — pehle store deploy hone ke baad ye page kholein.', 'err'); });
+})();
+</script>
+</body>
+</html>
