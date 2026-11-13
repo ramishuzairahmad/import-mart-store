@@ -1,7 +1,6 @@
 # Import Mart Store — Cloudflare Pages
 
-Live store: https://import-mart.pages.dev (project `import-mart` on Cloudflare Pages,
-account ramishuzair3@gmail.com, connected to GitHub repo `ramishuzairahmad/import-mart-store`).
+Live store: https://import-mart-store.onrender.com/ (project `import-mart-store` on Render, account ramishuzair3@gmail.com, connected to GitHub repo `ramishuzairahmad/import-mart-store`).
 
 ## Files
 - `index.html` — storefront (navy + gold, same design as the old Import Mart store)
